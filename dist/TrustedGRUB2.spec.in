@@ -11,7 +11,7 @@ Summary:	Trusted boot loader based on grub2
 Group:		System Environment/Base
 License:	GPLv3+
 #URL:
-Source0:	TrustedGRUB2-%{version}.tar.gz
+Source0:	trustedgrub2-%{version}.tar.gz
 BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
 BuildRequires:	gc gcc make bison gettext flex python autoconf automake autogen guile
@@ -29,7 +29,6 @@ written into PCR during the boot process.
 %setup -q
 
 %build
-./autogen.sh
 %configure --prefix=/usr --libdir=%{_libdir}
 make %{?_smp_mflags} CFLAGS= CXXFLAGS= FFLAGS= FCFLAGS= LDFLAGS= CCASFLAGS=
 
