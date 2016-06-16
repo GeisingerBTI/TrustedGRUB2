@@ -2,6 +2,7 @@
 %define name @PACKAGE@
 %define version @VERSION@
 %define release 1
+%define debug_package %{nil}
 
 Name:		%{name}
 Version:	%{version}
@@ -45,11 +46,11 @@ touch $RPM_BUILD_DIR/$RPM_PACKAGE_NAME-$RPM_PACKAGE_VERSION/debugfiles.list
 %doc README TODO
 %{_bindir}/*
 %{_sbindir}/*
-%dir %{_datadir}/grub
-%{_datadir}/grub/*
-%dir %{_libdir}/grub
-%dir %{_libdir}/grub/i386-pc
-%{_libdir}/grub/i386-pc/*
+%dir %{_datadir}/%{name}
+%{_datadir}/%{name}/*
+%dir %{_libdir}/%{name}
+%dir %{_libdir}/%{name}/i386-pc
+%{_libdir}/%{name}/i386-pc/*
 %dir /etc/grub.d
 %config /etc/grub.d/*
 %dir /etc/bash_completion.d
