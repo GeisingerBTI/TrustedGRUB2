@@ -167,7 +167,7 @@ library = {
 };
 
 program = {
-  name = grub-mkimage;
+  name = grub2-mkimage;
   mansection = 1;
 
   common = util/grub-mkimage.c;
@@ -193,7 +193,7 @@ program = {
 };
 
 program = {
-  name = grub-mkrelpath;
+  name = grub2-mkrelpath;
   mansection = 1;
 
   common = util/grub-mkrelpath.c;
@@ -208,7 +208,7 @@ program = {
 };
 
 program = {
-  name = grub-script-check;
+  name = grub2-script-check;
   mansection = 1;
 
   common = util/grub-script-check.c;
@@ -223,7 +223,7 @@ program = {
 };
 
 program = {
-  name = grub-editenv;
+  name = grub2-editenv;
   mansection = 1;
 
   common = util/grub-editenv.c;
@@ -238,7 +238,7 @@ program = {
 };
 
 program = {
-  name = grub-mkpasswd-pbkdf2;
+  name = grub2-mkpasswd-pbkdf2;
   mansection = 1;
 
   common = util/grub-mkpasswd-pbkdf2.c;
@@ -261,7 +261,7 @@ program = {
 };
 
 program = {
-  name = grub-fstest;
+  name = grub2-fstest;
   mansection = 1;
   common_nodist = grub_fstest_init.c;
   common = util/grub-fstest.c;
@@ -294,7 +294,7 @@ program = {
 };
 
 program = {
-  name = grub-mkfont;
+  name = grub2-mkfont;
   mansection = 1;
   common = util/grub-mkfont.c;
   common = grub-core/kern/emu/argp_common.c;
@@ -313,7 +313,7 @@ program = {
 };
 
 program = {
-  name = grub-probe;
+  name = grub2-probe;
   installdir = sbin;
   mansection = 8;
   common = util/grub-probe.c;
@@ -330,7 +330,7 @@ program = {
 };
 
 program = {
-  name = grub-bios-setup;
+  name = grub2-bios-setup;
   installdir = sbin;
   mansection = 8;
   common = util/grub-setup.c;
@@ -353,7 +353,7 @@ program = {
 };
 
 program = {
-  name = grub-sparc64-setup;
+  name = grub2-sparc64-setup;
   installdir = sbin;
   mansection = 8;
   common = util/grub-setup.c;
@@ -373,7 +373,7 @@ program = {
 };
 
 program = {
-  name = grub-ofpathname;
+  name = grub2-ofpathname;
   installdir = sbin;
   mansection = 8;
   common = util/ieee1275/grub-ofpathname.c;
@@ -388,7 +388,7 @@ program = {
 };
 
 program = {
-  name = grub-mklayout;
+  name = grub2-mklayout;
   mansection = 1;
 
   common = util/grub-mklayout.c;
@@ -403,7 +403,7 @@ program = {
 };
 
 program = {
-  name = grub-macbless;
+  name = grub2-macbless;
   installdir = sbin;
   mansection = 8;
   common = util/grub-macbless.c;
@@ -504,7 +504,7 @@ script = {
 
 program = {
   mansection = 1;
-  name = grub-mkrescue;
+  name = grub2-mkrescue;
 
   common = util/grub-mkrescue.c;
   common = util/render-label.c;
@@ -546,7 +546,7 @@ program = {
 
 program = {
   mansection = 1;
-  name = grub-mkstandalone;
+  name = grub2-mkstandalone;
   common = util/grub-mkstandalone.c;
 
   common = util/render-label.c;
@@ -590,7 +590,7 @@ program = {
 program = {
   mansection = 8;
   installdir = sbin;
-  name = grub-install;
+  name = grub2-install;
 
   common = util/grub-install.c;
   common = util/probe.c;
@@ -627,7 +627,7 @@ program = {
 program = {
   mansection = 1;
   installdir = bin;
-  name = grub-mknetdir;
+  name = grub2-mknetdir;
 
   common = util/grub-mknetdir.c;
 
@@ -659,21 +659,21 @@ program = {
 };
 
 script = {
-  name = grub-mkconfig;
+  name = grub2-mkconfig;
   common = util/grub-mkconfig.in;
   mansection = 8;
   installdir = sbin;
 };
 
 script = {
-  name = grub-set-default;
+  name = grub2-set-default;
   common = util/grub-set-default.in;
   mansection = 8;
   installdir = sbin;
 };
 
 script = {
-  name = grub-reboot;
+  name = grub2-reboot;
   common = util/grub-reboot.in;
   mansection = 8;
   installdir = sbin;
@@ -686,7 +686,7 @@ script = {
 };
 
 script = {
-  name = grub-kbdcomp;
+  name = grub2-kbdcomp;
   common = util/grub-kbdcomp.in;
   mansection = 1;
 };
@@ -1245,7 +1245,7 @@ program = {
 };
 
 program = {
-  name = grub-menulst2cfg;
+  name = grub2-menulst2cfg;
   mansection = 1;
   common = util/grub-menulst2cfg.c;
   common = grub-core/lib/legacy_parse.c;
@@ -1260,7 +1260,7 @@ program = {
 };
 
 program = {
-  name = grub-syslinux2cfg;
+  name = grub2-syslinux2cfg;
   mansection = 1;
   common = util/grub-syslinux2cfg.c;
   common = grub-core/lib/syslinux_parse.c;
@@ -1278,7 +1278,7 @@ program = {
 };
 
 program = {
-  name = grub-glue-efi;
+  name = grub2-glue-efi;
   mansection = 1;
 
   common = util/grub-glue-efi.c;
@@ -1294,7 +1294,7 @@ program = {
 };
 
 program = {
-  name = grub-render-label;
+  name = grub2-render-label;
   mansection = 1;
 
   common = util/grub-render-label.c;
@@ -1312,7 +1312,7 @@ program = {
 };
 
 program = {
-  name = grub-file;
+  name = grub2-file;
   mansection = 1;
 
   common = util/grub-file.c;
