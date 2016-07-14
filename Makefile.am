@@ -51,8 +51,8 @@ libgrub_a_init.c: libgrub_a_init.lst $(top_srcdir)/geninit.sh
 CLEANFILES += libgrub_a_init.c
 
 # For grub-fstest
-grub_fstest.pp: $(grub2_fstest_SOURCES)
-	$(CPP) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(grub2_fstest_CPPFLAGS) $(CPPFLAGS) \
+grub_fstest.pp: $(grub_fstest_SOURCES)
+	$(CPP) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(grub_fstest_CPPFLAGS) $(CPPFLAGS) \
 	  -D'GRUB_MOD_INIT(x)=@MARKER@x@' $^ > $@ || (rm -f $@; exit 1)
 CLEANFILES += grub_fstest.pp
 
