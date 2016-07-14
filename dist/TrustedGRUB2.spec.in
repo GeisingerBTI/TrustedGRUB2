@@ -30,7 +30,7 @@ written into PCR during the boot process.
 %setup -q
 
 %build
-%configure --prefix=/usr --libdir=%{_libdir}
+%configure --prefix=/usr --libdir=%{_libdir} --program-transform-name='s/grub-/grub2-/'
 make %{?_smp_mflags} CFLAGS= CXXFLAGS= FFLAGS= FCFLAGS= LDFLAGS= CCASFLAGS=
 
 %install
