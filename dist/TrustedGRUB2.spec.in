@@ -56,7 +56,6 @@ touch $RPM_BUILD_DIR/$RPM_PACKAGE_NAME-$RPM_PACKAGE_VERSION/debugfiles.list
 %dir /etc/bash_completion.d
 /etc/bash_completion.d/grub
 
-%exclude /usr/lib/debug
-%exclude /usr/share/info/dir
-
+%exclude /usr/share/info/grub.info.gz
+%exclude /usr/share/info/grub-dev.info.gz
 %changelog
