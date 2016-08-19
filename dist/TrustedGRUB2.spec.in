@@ -1,61 +1,300 @@
+# Modules always contain just 32-bit code
+%define _libdir %{_exec_prefix}/lib
 
-%define name @PACKAGE@
-%define version @VERSION@
-%define release 1
-%define debug_package %{nil}
+# 64bit intel machines use 32bit boot loader
+# (We cannot just redefine _target_cpu, as we'd get i386.rpm packages then)
+%ifarch x86_64
+%define _target_platform i386-%{_vendor}-%{_target_os}%{?_gnu}
+%endif
+# sparc is always compiled 64 bit
+%ifarch %{sparc}
+%define _target_platform sparc64-%{_vendor}-%{_target_os}%{?_gnu}
+%endif
 
-Name:		%{name}
-Version:	%{version}
-Release:	%{release}
+%global tarversion 2.02~beta2
+%global grubname grub2
+
+%undefine _missing_build_ids_terminate_build
+
+Name:		@PACKAGE@
+Epoch:          1
+Version:	@VERSION@
+Release:	1
 Summary:	Trusted boot loader based on grub2
 
 Group:		System Environment/Base
 License:	GPLv3+
 #URL:
-Source0:	trustedgrub2-%{version}.tar.gz
+Source0:	%{name}-%{version}.tar.gz
 BuildRoot:	%(mktemp -ud %{_tmppath}/%{name}-%{version}-%{release}-XXXXXX)
 
-BuildRequires:	gc gcc make bison gettext flex python autoconf automake autogen guile
-Requires:	cryptsetup dracut gawk coreutils grubby
-# for now we require an upstream tpm-tools and trousers, so don't add them
-# here so we can avoid --nodeps
-#Requires:	dracut
+BuildRequires:	gc gcc make guile
+
+BuildRequires:  flex bison binutils python
+BuildRequires:  ncurses-devel xz-devel bzip2-devel
+BuildRequires:  freetype-devel libusb-devel
+%ifarch %{sparc} x86_64 aarch64 ppc64le
+# sparc builds need 64 bit glibc-devel - also for 32 bit userland
+BuildRequires:  /usr/lib64/crt1.o glibc-static
+%else
+# ppc64 builds need the ppc crt1.o
+BuildRequires:  /usr/lib/crt1.o glibc-static
+%endif
+BuildRequires:  autoconf automake autogen device-mapper-devel
+BuildRequires:	freetype-devel gettext-devel git
+BuildRequires:	texinfo
+BuildRequires:	dejavu-sans-fonts
+BuildRequires:	help2man
+BuildRequires:	rpm-devel
+
+
+Requires:	gettext os-prober which file
+Requires:	%{name}-tools = %{epoch}:%{version}-%{release}
+Requires(pre):  dracut
+Requires(post): dracut
+
+ExcludeArch:	s390 s390x %{arm}
 
 %description
 TrustedGRUB2 is a boot loader based on grub2 that offers TCG (TPM) support to guaranty
 the integrity of the boot process (trusted boot). All boot components are measured and
 written into PCR during the boot process.
 
+%package tools
+Summary:	Support tools for GRUB.
+Group:		System Environment/Base
+Requires:	gettext os-prober which file system-logos
+Requires(pre):	sed grep coreutils
+
+%description tools
+The GRand Unified Bootloader (GRUB) is a highly configurable and customizable
+bootloader with modular architecture.  It support rich varietyof kernel formats,
+file systems, computer architectures and hardware devices.  This subpackage
+provides tools for support of all platforms.
+
+
 %prep
-%setup -q
+%setup -T -c -n %{name}-%{version}
+%setup -D -q -T -a 0 -n %{name}-%{version}
+
 
 %build
-%configure --prefix=/usr --libdir=%{_libdir} --program-transform-name='s/grub-/grub2-/' --with-grubdir=grub2
-make %{?_smp_mflags} CFLAGS= CXXFLAGS= FFLAGS= FCFLAGS= LDFLAGS= CCASFLAGS=
+cd %{name}-%{version}
+./autogen.sh
+# -static is needed so that autoconf script is able to link
+# test that looks for _start symbol on 64 bit platforms
+%ifarch %{sparc} ppc ppc64 ppc64le
+%define platform ieee1275
+%else
+%define platform pc
+%endif
+%configure							\
+	CFLAGS="$(echo $RPM_OPT_FLAGS | sed			\
+		-e 's/-O.//g'					\
+		-e 's/-fstack-protector[[:alpha:]-]\+//g'	\
+		-e 's/--param=ssp-buffer-size=4//g'		\
+		-e 's/-mregparm=3/-mregparm=4/g'		\
+		-e 's/-fexceptions//g'				\
+		-e 's/-m64//g'					\
+		-e 's/-fasynchronous-unwind-tables//g'		\
+		-e 's/-mcpu=power7/-mcpu=power6/g'		\
+		-e 's/^/ -fno-strict-aliasing -std=gnu99 /' )"	\
+	TARGET_LDFLAGS=-static					\
+        --with-platform=%{platform}				\
+	--with-grubdir=%{grubname}					\
+        --program-transform-name=s,grub,%{grubname},		\
+	--disable-grub-mount					\
+	--disable-werror
+
+make %{?_smp_mflags}
+
+
+sed -i -e 's,(grub),(%{grubname}),g' \
+	-e 's,grub.info,%{grubname}.info,g' \
+	-e 's,\* GRUB:,* GRUB2:,g' \
+	-e 's,/boot/grub/,/boot/%{grubname}/,g' \
+	-e 's,\([^-]\)grub-\([a-z]\),\1%{grubname}-\2,g' \
+	docs/grub.info
+sed -i -e 's,grub-dev,%{grubname}-dev,g' docs/grub-dev.info
+
+/usr/bin/makeinfo --html --no-split -I docs -o grub-dev.html docs/grub-dev.texi
+/usr/bin/makeinfo --html --no-split -I docs -o grub.html docs/grub.texi
+sed -i	-e 's,/boot/grub/,/boot/%{grubname}/,g' \
+	-e 's,\([^-]\)grub-\([a-z]\),\1%{grubname}-\2,g' \
+	grub.html
+
 
 %install
-[ "${RPM_BUILD_ROOT}" != "/" ] && [ -d ${RPM_BUILD_ROOT} ] && rm -rf ${RPM_BUILD_ROOT};
-make install DESTDIR=$RPM_BUILD_ROOT
-touch $RPM_BUILD_DIR/$RPM_PACKAGE_NAME-$RPM_PACKAGE_VERSION/debugfiles.list
+set -e
+rm -fr $RPM_BUILD_ROOT
+
+
+
+cd %{name}-%{version}
+
+make DESTDIR=$RPM_BUILD_ROOT install
+
+# Ghost config file
+install -d $RPM_BUILD_ROOT/boot/%{grubname}
+touch $RPM_BUILD_ROOT/boot/%{grubname}/grub.cfg
+ln -s ../boot/%{grubname}/grub.cfg $RPM_BUILD_ROOT%{_sysconfdir}/%{grubname}.cfg
+
+
+#cp -a $RPM_BUILD_ROOT%{_datarootdir}/locale/en\@quot $RPM_BUILD_ROOT%{_datarootdir}/locale/en
+
+# Install ELF files modules and images were created from into
+# the shadow root, where debuginfo generator will grab them from
+find $RPM_BUILD_ROOT -name '*.mod' -o -name '*.img' |
+while read MODULE
+do
+        BASE=$(echo $MODULE |sed -r "s,.*/([^/]*)\.(mod|img),\1,")
+        # Symbols from .img files are in .exec files, while .mod
+        # modules store symbols in .elf. This is just because we
+        # have both boot.img and boot.mod ...
+        EXT=$(echo $MODULE |grep -q '.mod' && echo '.elf' || echo '.exec')
+        TGT=$(echo $MODULE |sed "s,$RPM_BUILD_ROOT,.debugroot,")
+#        install -m 755 -D $BASE$EXT $TGT
+done
+
+mv $RPM_BUILD_ROOT%{_infodir}/grub.info $RPM_BUILD_ROOT%{_infodir}/%{grubname}.info
+mv $RPM_BUILD_ROOT%{_infodir}/grub-dev.info $RPM_BUILD_ROOT%{_infodir}/%{grubname}-dev.info
+rm $RPM_BUILD_ROOT%{_infodir}/dir
+
+# Defaults
+mkdir ${RPM_BUILD_ROOT}%{_sysconfdir}/default
+touch ${RPM_BUILD_ROOT}%{_sysconfdir}/default/grub
+mkdir ${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig
+ln -sf %{_sysconfdir}/default/grub \
+	${RPM_BUILD_ROOT}%{_sysconfdir}/sysconfig/grub
+
+cd ..
+#%find_lang grub
+
+# Fedora theme in /boot/grub2/themes/system/
+#cd $RPM_BUILD_ROOT
+#tar xjf %{SOURCE5}
+#$RPM_BUILD_ROOT%{_bindir}/%{name}-mkfont -o boot/grub2/themes/system/DejaVuSans-10.pf2      -s 10 /usr/share/fonts/dejavu/DejaVuSans.ttf # "DejaVu Sans Regular 10"
+#$RPM_BUILD_ROOT%{_bindir}/%{name}-mkfont -o boot/grub2/themes/system/DejaVuSans-12.pf2      -s 12 /usr/share/fonts/dejavu/DejaVuSans.ttf # "DejaVu Sans Regular 12"
+#$RPM_BUILD_ROOT%{_bindir}/%{name}-mkfont -o boot/grub2/themes/system/DejaVuSans-Bold-14.pf2 -s 14 /usr/share/fonts/dejavu/DejaVuSans-Bold.ttf # "DejaVu Sans Bold 14"
+
+# Make selinux happy with exec stack binaries.
+mkdir ${RPM_BUILD_ROOT}%{_sysconfdir}/prelink.conf.d/
+cat << EOF > ${RPM_BUILD_ROOT}%{_sysconfdir}/prelink.conf.d/grub2.conf
+# these have execstack, and break under selinux
+-b /usr/bin/grub2-script-check
+-b /usr/bin/grub2-mkrelpath
+-b /usr/bin/grub2-fstest
+-b /usr/sbin/grub2-bios-setup
+-b /usr/sbin/grub2-probe
+-b /usr/sbin/grub2-sparc64-setup
+EOF
 
 %clean
-[ "${RPM_BUILD_ROOT}" != "/" ] && [ -d ${RPM_BUILD_ROOT} ] && rm -rf ${RPM_BUILD_ROOT};
+rm -rf $RPM_BUILD_ROOT
+
+%pre tools
+if [ -f /boot/grub2/user.cfg ]; then
+    if grep -q '^GRUB_PASSWORD=' /boot/grub2/user.cfg ; then
+	sed -i 's/^GRUB_PASSWORD=/GRUB2_PASSWORD=/' /boot/grub2/user.cfg
+    fi
+elif [ -f /boot/efi/EFI/%{efidir}/user.cfg ]; then
+    if grep -q '^GRUB_PASSWORD=' /boot/efi/EFI/%{efidir}/user.cfg ; then
+	sed -i 's/^GRUB_PASSWORD=/GRUB2_PASSWORD=/' \
+	    /boot/efi/EFI/%{efidir}/user.cfg
+    fi
+elif [ -f /etc/grub.d/01_users ] && \
+	grep -q '^password_pbkdf2 root' /etc/grub.d/01_users ; then
+    if [ -f /boot/efi/EFI/%{efidir}/grub.cfg ]; then
+	# on EFI we don't get permissions on the file, but
+	# the directory is protected.
+	grep '^password_pbkdf2 root' /etc/grub.d/01_users | \
+		sed 's/^password_pbkdf2 root \(.*\)$/GRUB2_PASSWORD=\1/' \
+	    > /boot/efi/EFI/%{efidir}/user.cfg
+    fi
+    if [ -f /boot/grub2/grub.cfg ]; then
+	install -m 0600 /dev/null /boot/grub2/user.cfg
+	chmod 0600 /boot/grub2/user.cfg
+	grep '^password_pbkdf2 root' /etc/grub.d/01_users | \
+		sed 's/^password_pbkdf2 root \(.*\)$/GRUB2_PASSWORD=\1/' \
+	    > /boot/grub2/user.cfg
+    fi
+fi
+
+%post tools
+if [ "$1" = 1 ]; then
+	/sbin/install-info --info-dir=%{_infodir} %{_infodir}/%{grubname}.info.gz || :
+	/sbin/install-info --info-dir=%{_infodir} %{_infodir}/%{grubname}-dev.info.gz || :
+fi
+
 
 %files
 %defattr(-,root,root,-)
-%doc README TODO
-%{_bindir}/*
-%{_sbindir}/*
-%dir %{_datadir}/%{name}
-%{_datadir}/%{name}/*
-%dir %{_libdir}/%{name}
-%dir %{_libdir}/%{name}/i386-pc
-%{_libdir}/%{name}/i386-pc/*
-%dir /etc/grub.d
-%config /etc/grub.d/*
-%dir /etc/bash_completion.d
-/etc/bash_completion.d/grub
+%{_libdir}/%{name}/*-%{platform}/
+%config(noreplace) %{_sysconfdir}/%{grubname}.cfg
+%ghost %config(noreplace) /boot/%{grubname}/grub.cfg
+%doc %{name}-%{version}/COPYING
+%config(noreplace) %ghost /boot/grub2/grubenv
 
-%exclude /usr/share/info/dir
+
+%files tools
+%defattr(-,root,root,-)
+%dir %{_libdir}/%{name}/
+%dir %{_datarootdir}/%{name}/
+%dir %{_datarootdir}/%{name}/themes
+%{_datarootdir}/%{name}/*
+%{_sbindir}/%{grubname}-bios-setup
+%{_sbindir}/%{grubname}-install
+%{_sbindir}/%{grubname}-macbless
+%{_sbindir}/%{grubname}-mkconfig
+%{_sbindir}/%{grubname}-ofpathname
+%{_sbindir}/%{grubname}-probe
+%{_sbindir}/%{grubname}-reboot
+#%{_sbindir}/%{grubname}-rpm-sort
+%{_sbindir}/%{grubname}-set-default
+#%{_sbindir}/%{grubname}-setpassword
+%{_sbindir}/%{grubname}-sparc64-setup
+%{_bindir}/%{grubname}-editenv
+%{_bindir}/%{grubname}-file
+%{_bindir}/%{grubname}-fstest
+%{_bindir}/%{grubname}-glue-efi
+%{_bindir}/%{grubname}-kbdcomp
+%{_bindir}/%{grubname}-menulst2cfg
+%{_bindir}/%{grubname}-mkfont
+%{_bindir}/%{grubname}-mkimage
+%{_bindir}/%{grubname}-mklayout
+%{_bindir}/%{grubname}-mknetdir
+%{_bindir}/%{grubname}-mkpasswd-pbkdf2
+%{_bindir}/%{grubname}-mkrelpath
+%ifnarch %{sparc}
+%{_bindir}/%{grubname}-mkrescue
+%endif
+%{_bindir}/%{grubname}-mkstandalone
+%{_bindir}/%{grubname}-render-label
+%{_bindir}/%{grubname}-script-check
+%{_bindir}/%{grubname}-syslinux2cfg
+%{_sysconfdir}/bash_completion.d/grub
+%{_sysconfdir}/prelink.conf.d/grub2.conf
+%attr(0700,root,root) %dir %{_sysconfdir}/grub.d
+%config %{_sysconfdir}/grub.d/??_*
+%{_sysconfdir}/grub.d/README
+%attr(0644,root,root) %ghost %config(noreplace) %{_sysconfdir}/default/grub
+%{_sysconfdir}/sysconfig/grub
+%attr(0700,root,root) %dir /boot/%{grubname}
+#%dir /boot/%{grubname}/themes/
+#%dir /boot/%{grubname}/themes/system
+#%exclude /boot/%{grubname}/themes/system/*
+#%exclude %{_datarootdir}/grub/themes/
+%{_infodir}/%{grubname}*
+%doc %{name}-%{version}/COPYING %{name}-%{version}/INSTALL
+%doc %{name}-%{version}/NEWS %{name}-%{version}/README
+%doc %{name}-%{version}/THANKS %{name}-%{version}/TODO
+%doc %{name}-%{version}/grub.html
+%doc %{name}-%{version}/grub-dev.html %{name}-%{version}/docs/font_char_metrics.png
+%doc %{_mandir}/man1/*
+%doc %{_mandir}/man8/*
+#%dir /boot/%{grubname}/themes/
+#%dir %{_datarootdir}/%{name}/themes
+%exclude %{_datarootdir}/%{name}/themes/starfield
+
 
 %changelog
