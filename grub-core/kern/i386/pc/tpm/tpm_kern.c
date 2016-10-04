@@ -145,7 +145,7 @@ grub_TPM_int1A_hashLogExtendEvent( const grub_uint8_t* inDigest, grub_uint8_t pc
 	grub_bios_interrupt (0x1A, &regs);
 
 	if ( regs.eax != TCG_PC_OK ) {
-        grub_fatal( "TCG_HashLogExtendEvent failed: 0x%x", regs.eax );
+        grub_printf( "TCG_HashLogExtendEvent failed: PCR[%u] 0x%x", pcrIndex, regs.eax );
 	}
 
 #ifdef TGRUB_DEBUG
