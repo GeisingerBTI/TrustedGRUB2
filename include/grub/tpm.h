@@ -30,10 +30,10 @@
 #define SHA1_DIGEST_SIZE 20
 
 /* Measure into following PCRs */
-#define TPM_LOADER_MEASUREMENT_PCR 9
+#define TPM_LOADER_MEASUREMENT_PCR 14
 #define TPM_COMMAND_MEASUREMENT_PCR 11
 #define TPM_LUKS_HEADER_MEASUREMENT_PCR 12
-#define TPM_GRUB2_LOADED_FILES_MEASUREMENT_PCR 12
+#define TPM_GRUB2_LOADED_FILES_MEASUREMENT_PCR 13
 
 /************************* macros *************************/
 
