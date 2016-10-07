@@ -31,7 +31,7 @@ dnl (such as BUILD_CC, BUILD_CFLAGS, etc.) for the build type and variables
 dnl with the prefix "TARGET_" (such as TARGET_CC, TARGET_CFLAGS, etc.) are
 dnl used for the target type. See INSTALL for full list of variables.
 
-AC_INIT([trustedgrub2],[1.4.0],[bug-grub@gnu.org])
+AC_INIT([trustedgrub2],[1.4.1],[bug-grub@gnu.org])
 
 AC_CONFIG_AUX_DIR([build-aux])
 
