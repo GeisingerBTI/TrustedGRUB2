@@ -1,11 +1,13 @@
 # TrustedGRUB2
 
-[![Build Status](https://travis-ci.org/Sirrix-AG/TrustedGRUB2.svg?branch=master)](https://travis-ci.org/Sirrix-AG/TrustedGRUB2)
+[![Build Status](https://travis-ci.org/Rohde-Schwarz-Cybersecurity/TrustedGRUB2.svg?branch=master)](https://travis-ci.org/Rohde-Schwarz-Cybersecurity/TrustedGRUB2)
 
-<a href="https://scan.coverity.com/projects/5521">
+<a href="https://scan.coverity.com/projects/rohde-schwarz-cybersecurity-trustedgrub2">
   <img alt="Coverity Scan Build Status"
        src="https://scan.coverity.com/projects/5521/badge.svg"/>
 </a>
+
+[![Quality Gate](https://sonarqube.com/api/badges/gate?key=TrustedGRUB2)](https://sonarqube.com/dashboard/index/TrustedGRUB2)
 
 ## 1. General Information
 
