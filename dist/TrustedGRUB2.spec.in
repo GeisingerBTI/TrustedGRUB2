@@ -19,7 +19,7 @@
 Name:		@PACKAGE@
 Epoch:          1
 Version:	@VERSION@
-Release:	4
+Release:	5
 Summary:	Trusted boot loader based on grub2
 
 Group:		System Environment/Base
